@@ -137,3 +137,11 @@ def aplicar_filtro_roberts(imagem):
 
     magnitude = cv2.magnitude(np.float32(roberts_x), np.float32(roberts_y))
     return cv2.convertScaleAbs(magnitude)
+
+def segmentacao_otsu(imagem):
+    """Aplica a limiarização de Otsu para segmentar a imagem."""
+    if imagem is None:
+        return None
+    # A função threshold retorna o valor do limiar e a imagem limiarizada
+    _, imagem_limiarizada = cv2.threshold(imagem, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    return imagem_limiarizada

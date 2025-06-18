@@ -90,6 +90,28 @@ class App(QMainWindow):
         self.btn_roberts.clicked.connect(self.aplicar_roberts)
         self.layout.addWidget(self.btn_roberts)
 
+        # --- Título para a seção de Morfologia ---
+        label_morfologia = QLabel("--- Morfologia Matemática ---")
+        self.layout.addWidget(label_morfologia)
+
+        # --- Botões para Morfologia ---
+        self.btn_erosao = QPushButton('Erosão', self)
+        self.btn_erosao.clicked.connect(self.aplicar_erosao)
+        self.layout.addWidget(self.btn_erosao)
+
+        self.btn_dilatacao = QPushButton('Dilatação', self)
+        self.btn_dilatacao.clicked.connect(self.aplicar_dilatacao)
+        self.layout.addWidget(self.btn_dilatacao)
+
+    # --- Título para a seção de Segmentação ---
+        label_segmentacao = QLabel("--- Segmentação ---")
+        self.layout.addWidget(label_segmentacao)
+
+        # --- Botão para Segmentação ---
+        self.btn_otsu = QPushButton('Limiarização de Otsu', self)
+        self.btn_otsu.clicked.connect(self.aplicar_otsu)
+        self.layout.addWidget(self.btn_otsu)
+
     def mostrar_aviso(self, mensagem):
         """Função auxiliar para exibir uma caixa de mensagem de aviso."""
         QMessageBox.warning(self, "Aviso", mensagem)
@@ -194,8 +216,6 @@ class App(QMainWindow):
         else:
             self.mostrar_aviso("Por favor, carregue uma imagem primeiro.")
 
-    # Adicione estes métodos ao final da classe App em interface.py
-
     def aplicar_laplaciano(self):
         if self.imagem_processada is not None:
             self.imagem_processada = processamento.aplicar_filtro_laplaciano(self.imagem_processada)
@@ -220,6 +240,21 @@ class App(QMainWindow):
     def aplicar_roberts(self):
         if self.imagem_processada is not None:
             self.imagem_processada = processamento.aplicar_filtro_roberts(self.imagem_processada)
+            self.exibir_imagem(self.imagem_processada)
+        else:
+            self.mostrar_aviso("Por favor, carregue uma imagem primeiro.")
+
+    def aplicar_erosao(self):
+        # A erosão é funcionalmente o filtro de mínimo
+        self.aplicar_minimo()
+
+    def aplicar_dilatacao(self):
+        # A dilatação é funcionalmente o filtro de máximo
+        self.aplicar_maximo()
+
+    def aplicar_otsu(self):
+        if self.imagem_processada is not None:
+            self.imagem_processada = processamento.segmentacao_otsu(self.imagem_processada)
             self.exibir_imagem(self.imagem_processada)
         else:
             self.mostrar_aviso("Por favor, carregue uma imagem primeiro.")
