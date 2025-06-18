@@ -1,6 +1,8 @@
-from PyQt5.QtWidgets import QMainWindow, QPushButton, QVBoxLayout, QWidget, QLabel, QFileDialog
+# Mude as importações no topo do interface.py
+import os
+from datetime import datetime
+from PyQt5.QtWidgets import QMainWindow, QPushButton, QVBoxLayout, QWidget, QLabel, QFileDialog, QMessageBox
 from PyQt5.QtGui import QPixmap, QImage
-# Importa nossas funções de processamento
 import processamento
 
 class App(QMainWindow):
@@ -10,9 +12,9 @@ class App(QMainWindow):
         self.setWindowTitle(self.title)
         self.setGeometry(100, 100, 800, 600)
 
-        self.imagem_processada = None # Armazena a imagem atual (em tons de cinza)
+        self.imagem_processada = None # Armazena a imagem atual
 
-        # Configuração do Widget Central e Layout
+        # Widget Central e Layout
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
         self.layout = QVBoxLayout(self.central_widget)
@@ -21,8 +23,7 @@ class App(QMainWindow):
         self.image_label = QLabel("Carregue uma imagem para começar")
         self.layout.addWidget(self.image_label)
 
-        # --- Criação dos Botões ---
-        # Requisito: O sistema deve permitir carregar e salvar imagens 
+        # --- Botões ---
         self.btn_carregar = QPushButton('Carregar Imagem', self)
         self.btn_carregar.clicked.connect(self.carregar_imagem)
         self.layout.addWidget(self.btn_carregar)
@@ -31,27 +32,82 @@ class App(QMainWindow):
         self.btn_salvar.clicked.connect(self.salvar_imagem)
         self.layout.addWidget(self.btn_salvar)
         
-        # Requisito: Botão para o Histograma 
         self.btn_histograma = QPushButton('Exibir Histograma', self)
-        self.btn_histograma.clicked.connect(self.exibir_histograma)
+        self.btn_histograma.clicked.connect(self.exibir_histograma) # Requisito: Histograma 
         self.layout.addWidget(self.btn_histograma)
+        
+        self.btn_alargamento = QPushButton('Alargamento de Contraste', self)
+        self.btn_alargamento.clicked.connect(self.aplicar_alargamento_contraste) # Requisito: Alargamento de Contraste 
+        self.layout.addWidget(self.btn_alargamento)
+
+        self.btn_equalizacao = QPushButton('Equalização de Histograma', self)
+        self.btn_equalizacao.clicked.connect(self.aplicar_equalizacao_histograma) # Requisito: Equalização de Histograma 
+        self.layout.addWidget(self.btn_equalizacao)
+
+        # --- Título para a seção de Filtros ---
+        label_filtros_pb = QLabel("--- Filtros Passa-Baixa ---")
+        self.layout.addWidget(label_filtros_pb)
+        
+        # --- Botões para Filtros ---
+        self.btn_media = QPushButton('Filtro de Média', self)
+        self.btn_media.clicked.connect(self.aplicar_media)
+        self.layout.addWidget(self.btn_media)
+
+        self.btn_mediana = QPushButton('Filtro de Mediana', self)
+        self.btn_mediana.clicked.connect(self.aplicar_mediana)
+        self.layout.addWidget(self.btn_mediana)
+
+        self.btn_gaussiano = QPushButton('Filtro Gaussiano', self)
+        self.btn_gaussiano.clicked.connect(self.aplicar_gaussiano)
+        self.layout.addWidget(self.btn_gaussiano)
+
+        self.btn_maximo = QPushButton('Filtro de Máximo', self)
+        self.btn_maximo.clicked.connect(self.aplicar_maximo)
+        self.layout.addWidget(self.btn_maximo)
+
+        self.btn_minimo = QPushButton('Filtro de Mínimo', self)
+        self.btn_minimo.clicked.connect(self.aplicar_minimo)
+        self.layout.addWidget(self.btn_minimo)
+
+    def mostrar_aviso(self, mensagem):
+        """Função auxiliar para exibir uma caixa de mensagem de aviso."""
+        QMessageBox.warning(self, "Aviso", mensagem)
 
     def carregar_imagem(self):
         options = QFileDialog.Options()
         fileName, _ = QFileDialog.getOpenFileName(self, "Abrir Imagem", "", "Arquivos de Imagem (*.png *.jpg *.bmp *.jpeg)", options=options)
         if fileName:
             self.imagem_processada = processamento.carregar_e_converter_para_cinza(fileName)
-            self.exibir_imagem(self.imagem_processada)
+            if self.imagem_processada is not None:
+                self.exibir_imagem(self.imagem_processada)
+            else:
+                self.mostrar_aviso("Não foi possível carregar a imagem.")
 
     def salvar_imagem(self):
         if self.imagem_processada is not None:
-            options = QFileDialog.Options()
-            fileName, _ = QFileDialog.getSaveFileName(self, "Salvar Imagem", "", "PNG (*.png);;JPG (*.jpg);;BMP (*.bmp)", options=options)
-            processamento.salvar_imagem(fileName, self.imagem_processada)
+            # Cria a pasta 'imagens' se ela não existir
+            pasta_imagens = 'imagens'
+            if not os.path.exists(pasta_imagens):
+                os.makedirs(pasta_imagens)
+            
+            # Gera um nome de arquivo único com base na data e hora
+            nome_arquivo = datetime.now().strftime("imagem_%Y%m%d_%H%M%S.png")
+            caminho_completo = os.path.join(pasta_imagens, nome_arquivo)
+            
+            # Salva a imagem
+            sucesso = processamento.salvar_imagem(caminho_completo, self.imagem_processada)
+            
+            if sucesso:
+                self.mostrar_info(f"Imagem salva com sucesso em:\n{caminho_completo}")
+            else:
+                self.mostrar_aviso("Ocorreu um erro ao salvar a imagem.")
+        else:
+            self.mostrar_aviso("Não há imagem para salvar.")
+
     
-    def exibir_histograma(self):
-        # Chama a função de processamento para calcular e exibir o histograma
-        processamento.calcular_e_exibir_histograma(self.imagem_processada)
+    def mostrar_info(self, mensagem):
+        """Função auxiliar para exibir uma caixa de mensagem de informação."""
+        QMessageBox.information(self, "Informação", mensagem)
             
     def exibir_imagem(self, img):
         if img is not None:
@@ -61,3 +117,60 @@ class App(QMainWindow):
             pixmap = QPixmap.fromImage(qImg)
             self.image_label.setPixmap(pixmap)
             self.image_label.adjustSize()
+
+    def exibir_histograma(self):
+        if self.imagem_processada is not None:
+            processamento.calcular_e_exibir_histograma(self.imagem_processada)
+        else:
+            self.mostrar_aviso("Por favor, carregue uma imagem primeiro.")
+
+    def aplicar_alargamento_contraste(self):
+        if self.imagem_processada is not None:
+            self.imagem_processada = processamento.alargamento_de_contraste(self.imagem_processada)
+            self.exibir_imagem(self.imagem_processada)
+        else:
+            self.mostrar_aviso("Por favor, carregue uma imagem primeiro.")
+
+    def aplicar_equalizacao_histograma(self):
+        if self.imagem_processada is not None:
+            self.imagem_processada = processamento.equalizacao_de_histograma(self.imagem_processada)
+            self.exibir_imagem(self.imagem_processada)
+        else:
+            self.mostrar_aviso("Por favor, carregue uma imagem primeiro.")
+
+    # Adicione estes métodos ao final da classe App em interface.py
+
+    def aplicar_media(self):
+        if self.imagem_processada is not None:
+            self.imagem_processada = processamento.aplicar_filtro_media(self.imagem_processada)
+            self.exibir_imagem(self.imagem_processada)
+        else:
+            self.mostrar_aviso("Por favor, carregue uma imagem primeiro.")
+
+    def aplicar_mediana(self):
+        if self.imagem_processada is not None:
+            self.imagem_processada = processamento.aplicar_filtro_mediana(self.imagem_processada)
+            self.exibir_imagem(self.imagem_processada)
+        else:
+            self.mostrar_aviso("Por favor, carregue uma imagem primeiro.")
+
+    def aplicar_gaussiano(self):
+        if self.imagem_processada is not None:
+            self.imagem_processada = processamento.aplicar_filtro_gaussiano(self.imagem_processada)
+            self.exibir_imagem(self.imagem_processada)
+        else:
+            self.mostrar_aviso("Por favor, carregue uma imagem primeiro.")
+
+    def aplicar_maximo(self):
+        if self.imagem_processada is not None:
+            self.imagem_processada = processamento.aplicar_filtro_maximo(self.imagem_processada)
+            self.exibir_imagem(self.imagem_processada)
+        else:
+            self.mostrar_aviso("Por favor, carregue uma imagem primeiro.")
+
+    def aplicar_minimo(self):
+        if self.imagem_processada is not None:
+            self.imagem_processada = processamento.aplicar_filtro_minimo(self.imagem_processada)
+            self.exibir_imagem(self.imagem_processada)
+        else:
+            self.mostrar_aviso("Por favor, carregue uma imagem primeiro.")
