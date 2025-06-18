@@ -1,6 +1,7 @@
 # processamento.py
 import cv2
 import matplotlib.pyplot as plt
+import numpy as np
 
 def carregar_e_converter_para_cinza(caminho_do_arquivo):
     """Carrega uma imagem de um arquivo e a converte para tons de cinza se for colorida."""
@@ -89,3 +90,50 @@ def aplicar_filtro_minimo(imagem, tamanho_kernel=5):
         return None
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (tamanho_kernel, tamanho_kernel))
     return cv2.erode(imagem, kernel)
+
+def aplicar_filtro_laplaciano(imagem):
+    """Aplica o filtro Laplaciano para detecção de bordas."""
+    if imagem is None:
+        return None
+    # Usamos CV_64F para evitar perda de dados e depois convertemos para 8-bit
+    laplaciano = cv2.Laplacian(imagem, cv2.CV_64F)
+    return cv2.convertScaleAbs(laplaciano)
+
+def aplicar_filtro_sobel(imagem):
+    """Aplica o filtro de Sobel para detecção de bordas."""
+    if imagem is None:
+        return None
+    # Calcula os gradientes em X e Y
+    sobel_x = cv2.Sobel(imagem, cv2.CV_64F, 1, 0, ksize=3)
+    sobel_y = cv2.Sobel(imagem, cv2.CV_64F, 0, 1, ksize=3)
+    # Calcula a magnitude do gradiente
+    magnitude = cv2.magnitude(sobel_x, sobel_y)
+    return cv2.convertScaleAbs(magnitude)
+
+def aplicar_filtro_prewitt(imagem):
+    """Aplica o filtro de Prewitt para detecção de bordas."""
+    if imagem is None:
+        return None
+    
+    kernel_x = np.array([[-1, 0, 1], [-1, 0, 1], [-1, 0, 1]])
+    kernel_y = np.array([[-1, -1, -1], [0, 0, 0], [1, 1, 1]])
+    
+    prewitt_x = cv2.filter2D(imagem, -1, kernel_x)
+    prewitt_y = cv2.filter2D(imagem, -1, kernel_y)
+    
+    magnitude = cv2.magnitude(np.float32(prewitt_x), np.float32(prewitt_y))
+    return cv2.convertScaleAbs(magnitude)
+
+def aplicar_filtro_roberts(imagem):
+    """Aplica o filtro de Roberts para detecção de bordas."""
+    if imagem is None:
+        return None
+        
+    kernel_x = np.array([[1, 0], [0, -1]])
+    kernel_y = np.array([[0, 1], [-1, 0]])
+    
+    roberts_x = cv2.filter2D(imagem, -1, kernel_x)
+    roberts_y = cv2.filter2D(imagem, -1, kernel_y)
+
+    magnitude = cv2.magnitude(np.float32(roberts_x), np.float32(roberts_y))
+    return cv2.convertScaleAbs(magnitude)

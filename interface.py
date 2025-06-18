@@ -69,6 +69,27 @@ class App(QMainWindow):
         self.btn_minimo.clicked.connect(self.aplicar_minimo)
         self.layout.addWidget(self.btn_minimo)
 
+        # --- Título para a seção de Filtros Passa-Alta ---
+        label_filtros_pa = QLabel("--- Filtros Passa-Alta (Detecção de Borda) ---")
+        self.layout.addWidget(label_filtros_pa)
+        
+        # --- Botões para Filtros Passa-Alta ---
+        self.btn_laplaciano = QPushButton('Filtro Laplaciano', self)
+        self.btn_laplaciano.clicked.connect(self.aplicar_laplaciano)
+        self.layout.addWidget(self.btn_laplaciano)
+
+        self.btn_sobel = QPushButton('Filtro de Sobel', self)
+        self.btn_sobel.clicked.connect(self.aplicar_sobel)
+        self.layout.addWidget(self.btn_sobel)
+
+        self.btn_prewitt = QPushButton('Filtro de Prewitt', self)
+        self.btn_prewitt.clicked.connect(self.aplicar_prewitt)
+        self.layout.addWidget(self.btn_prewitt)
+
+        self.btn_roberts = QPushButton('Filtro de Roberts', self)
+        self.btn_roberts.clicked.connect(self.aplicar_roberts)
+        self.layout.addWidget(self.btn_roberts)
+
     def mostrar_aviso(self, mensagem):
         """Função auxiliar para exibir uma caixa de mensagem de aviso."""
         QMessageBox.warning(self, "Aviso", mensagem)
@@ -138,8 +159,6 @@ class App(QMainWindow):
         else:
             self.mostrar_aviso("Por favor, carregue uma imagem primeiro.")
 
-    # Adicione estes métodos ao final da classe App em interface.py
-
     def aplicar_media(self):
         if self.imagem_processada is not None:
             self.imagem_processada = processamento.aplicar_filtro_media(self.imagem_processada)
@@ -171,6 +190,36 @@ class App(QMainWindow):
     def aplicar_minimo(self):
         if self.imagem_processada is not None:
             self.imagem_processada = processamento.aplicar_filtro_minimo(self.imagem_processada)
+            self.exibir_imagem(self.imagem_processada)
+        else:
+            self.mostrar_aviso("Por favor, carregue uma imagem primeiro.")
+
+    # Adicione estes métodos ao final da classe App em interface.py
+
+    def aplicar_laplaciano(self):
+        if self.imagem_processada is not None:
+            self.imagem_processada = processamento.aplicar_filtro_laplaciano(self.imagem_processada)
+            self.exibir_imagem(self.imagem_processada)
+        else:
+            self.mostrar_aviso("Por favor, carregue uma imagem primeiro.")
+
+    def aplicar_sobel(self):
+        if self.imagem_processada is not None:
+            self.imagem_processada = processamento.aplicar_filtro_sobel(self.imagem_processada)
+            self.exibir_imagem(self.imagem_processada)
+        else:
+            self.mostrar_aviso("Por favor, carregue uma imagem primeiro.")
+
+    def aplicar_prewitt(self):
+        if self.imagem_processada is not None:
+            self.imagem_processada = processamento.aplicar_filtro_prewitt(self.imagem_processada)
+            self.exibir_imagem(self.imagem_processada)
+        else:
+            self.mostrar_aviso("Por favor, carregue uma imagem primeiro.")
+
+    def aplicar_roberts(self):
+        if self.imagem_processada is not None:
+            self.imagem_processada = processamento.aplicar_filtro_roberts(self.imagem_processada)
             self.exibir_imagem(self.imagem_processada)
         else:
             self.mostrar_aviso("Por favor, carregue uma imagem primeiro.")
