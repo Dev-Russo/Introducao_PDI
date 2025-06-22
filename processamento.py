@@ -145,3 +145,75 @@ def segmentacao_otsu(imagem):
     # A função threshold retorna o valor do limiar e a imagem limiarizada
     _, imagem_limiarizada = cv2.threshold(imagem, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     return imagem_limiarizada
+
+def calcular_espectro_fourier(imagem):
+    """
+    Calcula e exibe o espectro de magnitude de Fourier de uma imagem.
+    A função exibe o resultado usando Matplotlib.
+    """
+    if imagem is None:
+        return None
+
+    # 1. Aplica a Transformada de Fourier
+    f = np.fft.fft2(imagem)
+    
+    # 2. Muda o componente de frequência zero para o centro do espectro
+    fshift = np.fft.fftshift(f)
+    
+    # 3. Calcula o espectro de magnitude (para visualização)
+    # A escala de log é usada para realçar os detalhes
+    espectro_magnitude = 20 * np.log(np.abs(fshift) + 1)
+
+    # 4. Exibe a imagem original e seu espectro
+    plt.figure(figsize=(10, 5))
+    
+    plt.subplot(1, 2, 1)
+    plt.imshow(imagem, cmap='gray')
+    plt.title('Imagem Original')
+    plt.axis('off')
+
+    plt.subplot(1, 2, 2)
+    plt.imshow(espectro_magnitude, cmap='gray')
+    plt.title('Espectro de Magnitude')
+    plt.axis('off')
+
+    plt.show()
+
+def aplicar_filtro_frequencia(imagem, tipo_filtro='passa_baixa', raio=30):
+    """
+    Aplica um filtro passa-baixa ou passa-alta no domínio da frequência.
+    """
+    if imagem is None:
+        return None
+
+    # Pega as dimensões da imagem
+    rows, cols = imagem.shape
+    crow, ccol = rows // 2 , cols // 2
+
+    # 1. Aplica a FFT e move o componente zero para o centro
+    f = np.fft.fft2(imagem)
+    fshift = np.fft.fftshift(f)
+
+    # 2. Cria a máscara do filtro
+    mask = np.zeros((rows, cols), np.uint8)
+    # Desenha um círculo na máscara. O raio define a frequência de corte.
+    cv2.circle(mask, (ccol, crow), raio, 1, thickness=-1)
+
+    if tipo_filtro == 'passa_alta':
+        # Para um filtro passa-alta, invertemos a máscara
+        mask = 1 - mask
+
+    # 3. Aplica a máscara ao espectro de frequência
+    fshift_filtrado = fshift * mask
+
+    # 4. Inverte o shift para mover o componente de frequência de volta
+    f_ishift = np.fft.ifftshift(fshift_filtrado)
+    
+    # 5. Aplica a Transformada Inversa de Fourier para voltar ao domínio espacial
+    img_filtrada = np.fft.ifft2(f_ishift)
+    img_filtrada = np.real(img_filtrada) # Pega a parte real
+
+    # Normaliza a imagem para exibição
+    img_filtrada = cv2.normalize(img_filtrada, None, 0, 255, cv2.NORM_MINMAX, dtype=cv2.CV_8U)
+
+    return img_filtrada

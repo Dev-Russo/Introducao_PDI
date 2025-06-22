@@ -112,6 +112,23 @@ class App(QMainWindow):
         self.btn_otsu.clicked.connect(self.aplicar_otsu)
         self.layout.addWidget(self.btn_otsu)
 
+     # --- Título para a seção de Domínio da Frequência ---
+        label_frequencia = QLabel("--- Domínio da Frequência ---")
+        self.layout.addWidget(label_frequencia)
+
+        # --- Botões para Domínio da Frequência ---
+        self.btn_espectro = QPushButton('Exibir Espectro de Fourier', self)
+        self.btn_espectro.clicked.connect(self.exibir_espectro)
+        self.layout.addWidget(self.btn_espectro)
+
+        self.btn_pb_freq = QPushButton('Filtro Passa-Baixa (Frequência)', self)
+        self.btn_pb_freq.clicked.connect(self.aplicar_filtro_pb_freq)
+        self.layout.addWidget(self.btn_pb_freq)
+
+        self.btn_pa_freq = QPushButton('Filtro Passa-Alta (Frequência)', self)
+        self.btn_pa_freq.clicked.connect(self.aplicar_filtro_pa_freq)
+        self.layout.addWidget(self.btn_pa_freq)
+
     def mostrar_aviso(self, mensagem):
         """Função auxiliar para exibir uma caixa de mensagem de aviso."""
         QMessageBox.warning(self, "Aviso", mensagem)
@@ -255,6 +272,26 @@ class App(QMainWindow):
     def aplicar_otsu(self):
         if self.imagem_processada is not None:
             self.imagem_processada = processamento.segmentacao_otsu(self.imagem_processada)
+            self.exibir_imagem(self.imagem_processada)
+        else:
+            self.mostrar_aviso("Por favor, carregue uma imagem primeiro.")
+    
+    def exibir_espectro(self):
+        if self.imagem_processada is not None:
+            processamento.calcular_espectro_fourier(self.imagem_processada)
+        else:
+            self.mostrar_aviso("Por favor, carregue uma imagem primeiro.")
+
+    def aplicar_filtro_pb_freq(self):
+        if self.imagem_processada is not None:
+            self.imagem_processada = processamento.aplicar_filtro_frequencia(self.imagem_processada, tipo_filtro='passa_baixa', raio=50)
+            self.exibir_imagem(self.imagem_processada)
+        else:
+            self.mostrar_aviso("Por favor, carregue uma imagem primeiro.")
+
+    def aplicar_filtro_pa_freq(self):
+        if self.imagem_processada is not None:
+            self.imagem_processada = processamento.aplicar_filtro_frequencia(self.imagem_processada, tipo_filtro='passa_alta', raio=30)
             self.exibir_imagem(self.imagem_processada)
         else:
             self.mostrar_aviso("Por favor, carregue uma imagem primeiro.")
